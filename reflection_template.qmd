@@ -835,6 +835,8 @@ I think I revised my thinking throughout this course by restructuring my approac
 
 Based on the code examples I've provided in my portfolio, I've revised my thinking by structuring my R code blocks cleanly and adding features, especially to my visualization, that makes my outputs more user friendly.
 
+When it comes to revising my thinking, I take into consideration the feedback given back to me from my peers and the feedback I am given from Dr. Theobold. From the revision of lab 1, I have taken into consideration how to format options with the new options style and applied that to my subsequent activities. Following lab 2, I learned that order mattered in the application of R especially in regards to ggplot and geom_point. I revised my lab 2 and took into account the order I overlay aesthetics for my subsequent plots. I completed a revision for lab 3 and challenge 3 but I only turned in challenge 3 because I wasn't sure how I could use my tokens to get a second revision. I fixed lab 3 by incorporating the advice I got to make writing code more efficient with across() and using slice functions to make my tables easier to look at. Additionally, I fixed challenge 3 by combining my male vs female and white vs non-white datasets into one table because I wasn't sure how I could group them.
+
 ## Extending My Thinking
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
@@ -845,4 +847,4 @@ I extended my thinking throughout this course by doing my own research and outso
 
 <!-- Include an image of feedback you gave that you are proud of (either in a peer review or in Discord) -->
 
-![Peer Review that I am proud of](images/PeerReview.JPG){fig-align="center"}
+![This is a Peer Review that I am proud of. I put a lot of thought into this review in regard to how tidy and efficient their code was. I made sure to follow the rubric and cited specific spots where I thought they did well. ](images/PeerReview.JPG){fig-align="center"}

@@ -1,0 +1,238 @@
+---
+title: "Lab 3"
+author: "Kaleigh Chi"
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute: 
+  eval: true
+  error: true
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
+
+# Data Set
+
+The data set `hiphop` contains results from a study conducted by a linguist at the University of Minnesota. The researcher was interested in predicting musical taste based on familiarity with African American English (AAE). 168 subjects participated in the study, and each was asked to define 64 different AAE terms. The definitions given were used to create a `familiarity` score for each subject for each term. This score quantifies how well the subject knew the term on a scale of 1-5 (1 = not at all, 5 = very well). Before tackling the problems, study the description of each variable [here](http://conservancy.umn.edu/bitstream/handle/11299/116327/5/explanationAAEHiphopChesley.txt).
+
+**1. Load the appropriate R packages and import the data set, `hiphop`.**
+
+```{r packages}
+#| results: hide
+
+# code chunk for loading packages and importing the data
+library(tidyverse)
+library(here)
+
+hiphop <- read_csv(here("Week 3", "Lab 3", "hiphop.csv"))
+```
+
+## Summary
+
+**2. Provide a brief overview (2-4 sentences) of the data set.**
+
+```{r dataset-explore}
+#| results: hide
+
+# you may want to use code to answer this question
+dim(hiphop)
+str(hiphop)
+```
+
+This data set was gathered by University of Minnesota researchers who wanted to observe 168 participant's familiarity with 64 phrases from the African American English (AAE). There are 10752 rows of observations and 38 columns of variables accounted for. There are character data types for the AAE phrase, subject identifier, sex, and ethnicity. And there are number data types for participant's age, residence, music genres, and pop culture questions rated on a 1-5 Likert scale.
+
+**3. What are the rows of this data set?**
+
+```{r rows}
+# you may want to use code to answer this question
+nrow(hiphop)
+```
+
+The rows of this data set are the responses of the study's participants in regards to their familiarity with the term as defined by the AAE.
+
+## Cleaning the Data
+
+**4. Missing values for some of the variables were replaced with other values. How were missing values replaced? What do you believe are some benefits and drawbacks of doing this?**
+
+```{r missing}
+#| results: hide
+
+# you may want to use code to answer this question
+hiphop
+```
+
+Missing values are replaces with 'NA'. The benefits of this are that it lets us know which values are missing. The drawbacks of doing this is that the data becomes less accurate since it isn't entirely reflective of the sample and the data may cause biases in the study.
+
+**5. Clean the data set in whichever ways you see fit. This might mean adjusting *variable type*, for example from `character` to `factor`, or dealing with missing data. Assign your cleaned data set to a new data set named `hiphop_clean` -- use this data set going forward.**
+
+```{r mutate-factor}
+# code chunk for Q5
+hiphop_clean <- hiphop |>
+  mutate(
+    across(c(jayz, jayz1, barkley, boondocks, boondocks1, monique, bieber), factor))
+```
+
+# Data Summaries
+
+**6. How many unique AAE words were studied in this data set?**
+
+```{r unique-AAE-words}
+# code chunk for Q6
+count(distinct(hiphop_clean, word))
+```
+
+There are 64 unique AAE words studied in this data set.
+
+**7. Make a new variable that re-categorizes `ethnic` into only two groups, "white" and "non-white", to simplify your data.**
+
+```{r recategorize-ethnic}
+# code chunk for Q7
+hiphop_clean <- hiphop_clean |>
+  mutate(
+    ethnic_cat = if_else(ethnic == "white", 
+                     "white", 
+                     "non-white")
+  )
+```
+
+**8. It is fairly common for researchers to collapse ethnic or racial categories similar to what you just did. What are some issues with representing the data in this way?**
+
+Some issues with representing the data in this way is that it other-izes people of other racial catalog. It says people are white or an "other", and by doing so, it is saying white is the default. It's setting the norm that the in-group is white and erases the backgrounds of ethnic groups.
+
+**9. What are the demographics of the people in this study? Investigate the variables `sex`, `age`, and `ethnic` and summarize your findings in 1-3 complete sentences.**
+
+```{r demographics}
+#code chunk for Q9
+hiphop_clean %>%
+  distinct(subj, .keep_all = TRUE) %>%
+  count(sex) 
+
+hiphop_clean %>%
+  distinct(subj, .keep_all = TRUE) %>%
+  count(age) 
+
+hiphop_clean %>%
+  distinct(subj, .keep_all = TRUE) %>%
+  count(ethnic)
+```
+
+In this data set, we see there are 117 female participants and 51 male participants surveyed in this study. Mostly 18 year-olds were surveyed, but it ranged from 16 year-olds as the youngest participants to a 48 year-old being the oldest participant. The ratio of white to non-white participants were 135 to 33.
+
+**10. Make at least two plots to display the demographic information of the subjects in this study.**
+
+```{r two-plots-demographics}
+# code chunk for Q10
+
+#Graph 1
+ggplot(hiphop_clean) +
+  geom_histogram(mapping = aes(y=ethnic, fill=sex),
+                 stat = "count", 
+                 position = "stack",
+                 color = "black") +
+  labs(title = "Hip Hop Study: Distribution of Racial Categories by Sex",
+       y = "Racial Categories",
+       x = "Frequency",
+       fill = "Sex") +
+  theme_light()
+
+#Graph 2
+ggplot(hiphop_clean) +
+  geom_histogram(mapping = aes(x = age, fill = sex),
+                 binwidth = 1,
+                 color = "black") +
+  labs(title = "Hip Hop Study: Frequency of Age by Sex",
+       x = "Age",
+       y = "Frequency",
+       fill = "Sex") +
+  theme_light()
+```
+
+## Familiar words
+
+For each demographic group listed below, determine which word(s) in this study was(were) the most **and** least familiar on average.
+
+**11. People below the age of 20.**
+
+```{r below-age-20}
+# code chunk for Q11
+hiphop_clean %>%
+  filter(age < 20) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_max(Mean, n = 5)
+
+hiphop_clean %>%
+  filter(age < 20) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_min(Mean, n = 5)
+```
+
+The least familiar word for people below the age of 20 on average is "catch the vapors". The most familiar word for people below the age of 20 on average is "off the hook".
+
+**12. Non-white women.**
+
+```{r non-white-women}
+# code chunk for Q12
+hiphop_clean %>%
+  filter(ethnic_cat == "non-white", sex == "Female") %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_max(Mean, n = 5)
+
+hiphop_clean %>%
+  filter(ethnic_cat == "non-white", sex == "Female") %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_min(Mean, n = 5)
+```
+
+The most familiar word on average to non-white women is "feel me". The least familiar word on average to non-white women was "break someone out".
+
+**13. White men above the age of 30.**
+
+```{r white-men-above-age-30}
+# code chunk for Q13
+hiphop_clean %>%
+  filter(age > 30, ethnic_cat == "white", sex == "Male", ) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_max(Mean, n = 5)
+
+hiphop_clean %>%
+  filter(age > 30, ethnic_cat == "white", sex == "Male", ) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_min(Mean, n = 5)
+```
+
+The most familiar word on average for white men above the age of 30 is "5-0". The least familiar word on average for white men above the age of 30 is "ay yo trip".
+
+## Study Subjects
+
+A joke among the [Tidy Tuesday](https://www.tidytuesday.com/) community is that Justin Bieber was one of the subjects in this study. Bieber, a white male, from a relatively small town (10,000-60,000 people) in Ontario would have been 17-23 at the time of the study.
+
+**14. Determine which subject you believe is secretly Bieber, justify your answer.**
+
+```{r bieber-secretly}
+# code chunk for Q14
+hiphop_clean %>%
+  filter(sex == "Male", 
+         ethnic == "white", 
+         16 < age, 
+         age < 24, 
+         word == "[to be] ghost",
+         city > 9999,
+         city < 60001,) %>%
+  slice_max(bieber, n = 5)
+```
+
+I suspect subject "p17" is secretly Justin Bieber. This participant had the highest score (5) of determining Justin Bieber songs correctly. The other participants who fit the profile of a white male between 17 to 23 years of age, and located in a city population between 10,000 to 60,000, had a score of 2 or lower when it came to identifying Justin Bieber songs.
+
+# Reflection
+
+Initially, I wasn't efficient in my methods for mutating across columns because I going through each column one by one to change to factors in question 5. I also didn't know how to use the across() function. Once I got my feedback, I realized how inefficient my method was and figured out how to use across() after searching for function help in the console. Additionally in question 14, I wasn't using the slice functions because I didn't know what slice was or how to apply it. I realize how much nicer it is to cut down the table instead of looking at an overwhelmingly long list after learning to apply it through console help. Regarding feedback I received from question 4, I didn't thoroughly analyze the purpose of NAs. Though it allows researchers to know which values are missing from record, the data becomes less accurate since it's now not representative of the entire research sample. Having a smaller pool leads to biases in the study. Lastly for 11, I wrote down multiple most/least familiar phrases. I had to fix that up by choosing the phrase that came up at the top of the list despite some phrases sharing the same values.

@@ -1,0 +1,84 @@
+---
+title: "PA 4"
+format: html
+editor: visual
+execute: 
+  warning: false
+---
+
+# Data Import
+
+## Problem 1: Modify code to read military expenditures data into work space
+
+```{r}
+library(readxl) 
+library(tidyverse)
+
+
+military <- read_xlsx(here::here("Week 4", 
+                                 "Practice Activity", 
+                                 "gov_spending_per_capita.xlsx"), 
+                      sheet = "Share of Govt. spending", 
+                      skip = 7, 
+                      n_max = 190)
+```
+
+# Data Cleaning
+
+## Problem 2: Find two methods and write code to replace values with NA
+
+```{r}
+
+military_clean <- military |>
+ mutate(across(`1988`:`2019`, .fns = na_if, ". ."))
+
+  
+```
+
+## Problem 3: Mutate these columns to all be numeric data types
+
+```{r}
+military_clean <- military_clean |>
+mutate(across(`1988`:`2019`, .fns = as.numeric))
+
+```
+
+## Incorrect Regions
+
+```{r}
+cont_region <- read_xlsx(here::here("Week 4", 
+                                    "Practice Activity", 
+                                    "gov_spending_per_capita.xlsx"), 
+                      sheet = "Regional totals", 
+                      skip = 14) |> 
+  filter(Region != "World total (including Iraq)", 
+         Region != "World total (excluding Iraq)")
+```
+
+## Problem 4: Use the anti_join() function to filter out the Country values we don't want in the military_clean data set
+
+```{r}
+military_clean <- military_clean |> 
+  anti_join(cont_region, by = c("Country" = "Region"))
+```
+
+# Data Organization
+
+## Problem 4: Pivot the cleaned up military data set to a longer orientation
+
+```{r}
+military_long <- military_clean |>
+  pivot_longer(cols = '1988':'2019', names_to = "Year", values_to = "Spending")
+
+```
+
+# Data Visualization Exploration
+
+## Problem 5: Create side-by-side boxplots of military spending for each year
+
+```{r}
+ggplot(data = military_long, 
+       aes(x = Spending, y = Year, group = Year)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_point(color = "tomato", alpha = 0.2)
+```

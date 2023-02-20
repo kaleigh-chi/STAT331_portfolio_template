@@ -1,0 +1,109 @@
+---
+title: "Challenge 4"
+author: "Kaleigh Chi"
+format: 
+  html:
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute:
+  echo: true
+  error: true
+  messages: false
+  warnings: false
+editor: visual
+---
+
+# Loading Data
+
+```{r}
+#| message: false
+
+library(tidyverse)
+library(here)
+
+zillow <- read_csv(here("Week 4", "Lab 4", "zillow_dataset.csv"))
+avocado <- read_csv(here("Week 4", "Lab 4", "avocado.csv"))
+```
+
+# Joining Data with Avocado Data set
+
+```{r}
+#| message: false
+
+# cleaning zillow data set
+
+zillow <- zillow %>%
+  pivot_longer(cols = `1/31/2015`:`9/30/2017`,
+               names_to = "date",
+               values_to = "prices") %>%
+  select(region, date, prices) %>%
+  separate(date, c("month", "day", "year"), sep = "/") %>%
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month)
+  ) %>%
+  select(region, year, month, prices) %>%
+  group_by(region, year, month) %>%
+  summarise(meanHome = mean(prices))
+```
+
+```{r}
+#| message: false
+
+# cleaning avocado data set
+
+avocado_ca <- avocado %>%
+  filter(region == 'LosAngeles' | region == 'SanDiego' | region == 'Sacramento' | region == 'SanFrancisco')
+
+avocado_cali <- avocado_ca %>%
+  group_by(region, Date) %>%
+  summarize(meanPrice = mean(AveragePrice)) %>%
+  separate(Date, c("year", "month", "day"), sep = "-") %>%
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month)
+  ) %>%
+  select(region, year, month, meanPrice) %>%
+  group_by(region, year, month) %>%
+  summarise(meanAvocado = mean(meanPrice)) 
+```
+
+```{r}
+#creating a joint dataset for zillow and california avocados
+
+join_avocado <- full_join(zillow, 
+                          avocado_cali, 
+                          by = c("region", "month", "year")) %>%
+  drop_na()
+
+join_avocado
+```
+
+# Avocado vs Housing Prices Plot
+
+```{r}
+#| message: false
+
+#learning how to add line of best fit, with source: https://aosmith.rbind.io/2018/11/16/plot-fitted-lines/
+
+#creating plot of house prices and avocados
+
+ggplot(data = join_avocado, aes(x = meanAvocado, y = meanHome)) +
+  geom_point(color = "steelblue") +
+  geom_smooth(method = "lm", se = TRUE, color = "orange") +
+  facet_wrap(~region, ncol = 2) +
+  labs(y = "Average Price of Home",
+       x = "Average Price of Avocado",
+       title = "Avocado Prices vs Homes in Major California Cities") +
+  scale_x_continuous(labels = scales::dollar) +
+  scale_y_continuous(labels = scales::dollar) 
+```
+
+There doesn't seem to be a strong positive correlation between the price of avocado and house prices, looking at the 4 major California cities. The slope for the most part is horizontally flat, indicating little to no relationship between avocado prices and homes. On the line of best fit, as the price of avocados increase, the price of homes increase marginally.
+
+When we compare the major cities, it's obvious each city has their own price range for homes. Despite San Francisco homes costing over \$1 million, Sacramento's \$270K range homes still pay as much on avocados as its San Fran counterparts. Millennials' ability to afford homes has to do more with the city they consider settling down in than the avocados they particularly enjoy.
+
+# Reflection
+
+I'm resubmitting my Challenge 4 because I wasn't able to complete my Lab 4 in the appropriate time frame. This also meant I didn't have a data set to work with for my Challenge 4 and I submitted this assignment extremely incomplete. Moving forward in the future, I have to manage my extracurriculars better so that I have more time to dedicate to my Labs on the weekends. I took a break from performing for my dance group following last weekend's extension. I hope to invest more focus in my studies because I truly do enjoy learning R.

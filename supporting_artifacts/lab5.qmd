@@ -1,0 +1,224 @@
+---
+title: "lab5"
+author: "Kaleigh Chi"
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute: 
+  echo: true
+  error: true
+---
+
+# 1. Revisiting Lab 2
+
+```{r}
+#| message: false
+
+# Setting up Lab 5
+library(tidyverse)
+library(here)
+
+surveys <- read_csv(here("STAT331", "Week 2", "Lab 2", "surveys.csv"))
+```
+
+## Question 1: Reorder Species
+
+```{r}
+# Learning about forcats with source: https://cran.r-project.org/web/packages/forcats/vignettes/forcats.html
+
+#using forcats in former Lab 2 plot
+species_plot <- surveys %>%
+  mutate(species = fct_reorder(species, 
+                               weight)) %>%
+  ggplot(aes(x = weight, 
+             y = species, 
+             group = species)) +
+  geom_jitter(color = "tomato", 
+              size = 0.4,
+              alpha = 1/7) +
+  geom_boxplot() + 
+  labs(x = "Weight (gm)", 
+       y = "Species") 
+```
+
+## Question 2: Moving y-axis labels
+
+```{r}
+#getting rid of y labels
+species_plot + 
+  ylab(NULL) +
+  labs(title = "Distribution of Various Species Weight") +
+  theme(plot.title.position = "plot")
+```
+
+# 2. Time Series Plot
+
+## Question 1: Visualization of how weights vary for each genus over duration of study
+
+```{r}
+#| message: false
+
+#learned about geom_line using source: https://ggplot2.tidyverse.org/reference/geom_path.html
+
+#cleaning data for genus weights by year
+weights_vary <- surveys %>%
+  group_by(year, 
+           genus) %>%
+  summarize(weight) 
+
+
+#plotting weight distribution of genus during study
+ggplot(data = surveys, 
+       aes(x = year, 
+           y = weight, 
+           col = genus)) +
+  geom_line() +
+  labs(x = "Year", 
+       title = "Genus Weight Variation throughout Duration of Study") + 
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```
+
+## Question 2: Calculate and plot mean weight for each genus for each year
+
+```{r}
+#| message: false
+
+#cleaning data for average genus weight by year
+mean_weight_vary <- surveys %>%
+  group_by(year, 
+           genus) %>%
+  summarize(mean_weight = mean(weight))
+
+#plotting average weight distribution for genus during study
+ggplot(data = mean_weight_vary, 
+       aes(x = year, 
+           y = mean_weight, 
+           col = genus)) +
+  geom_line() +
+  labs(x = "Year", 
+       title = "Average Genus Weight Variation throughout Duration of Study") + 
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```
+
+## Question 3: Reorder the line
+
+```{r}
+#plotting Question 2 plot with reordered lines
+ggplot(data = mean_weight_vary, 
+       aes(x = year, 
+           y = mean_weight, 
+           col = fct_rev(fct_reorder(genus,                       
+                                     mean_weight)))) +
+  geom_line() +
+  labs(x = "Year", 
+       title = "Average Genus Weight Variation throughout Duration of Study") +
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```
+
+## Question 4: Giving the legend a new title and getting rid of y-axis labels
+
+```{r}
+#Changing the labels of the previous graph
+ggplot(data = mean_weight_vary, 
+       aes(x = year, 
+           y = mean_weight, 
+           col = fct_rev(fct_reorder(genus,                       
+                                     mean_weight)))) +
+  geom_line() +
+  scale_color_discrete(guide = guide_legend(title = "Genus")) +
+  labs(x = "Year", 
+       title = "Average Genus Weight Variation throughout Duration of Study") +
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```
+
+# 3. Captures over the week
+
+## Question 1: Visualization of Rodents Captured Each Day of Week
+
+```{r}
+#learned to find number of occurences for each day of week with source: https://www.r-bloggers.com/2015/02/how-to-get-the-frequency-table-of-a-categorical-variable-as-a-data-frame-in-r/
+#learned to remove legend with source: https://datacornering.com/how-to-remove-legend-or-guide-in-ggplot2/
+
+#cleaning dataset for rodents captured
+rodents_captured <- surveys %>%
+  filter(taxa == "Rodent") %>%
+  select(day_of_week) %>%
+  group_by(day_of_week) 
+
+rodents_captured <- count(rodents_captured, 
+                          'day_of_week') %>%
+  drop_na()
+
+#creating plot for rodents captured
+ggplot(data = rodents_captured, 
+       aes(x = day_of_week, 
+           y = n, fill = 
+             day_of_week)) +
+  geom_bar(stat = "identity", 
+           show.legend = FALSE) +
+  labs(x = "Day of Week", 
+       title = "Number of Rodents Captured Throughout the Week") + 
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```
+
+## Question 2: Changing Order
+
+```{r}
+#reordering rodents captured 
+rodents_captured$day_of_week <- factor(rodents_captured$day_of_week, 
+                                       levels = c("Mon", "Tue", "Wed", 
+                                                  "Thu", "Fri", "Sat", "Sun"))
+
+#creating reordered plot for rodents captured
+ggplot(data = rodents_captured, 
+       aes(x = day_of_week, 
+           y = n, 
+           fill = day_of_week)) +
+  geom_bar(stat = "identity", 
+           show.legend = FALSE) +
+  labs(x = "Day of Week", 
+       title = "Number of Rodents Captured Throughout the Week") + 
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```
+
+## Question 3: Collapse into Different Levels
+
+```{r}
+#collapsing days of week into different levels with forcats
+rodents_captured <- rodents_captured %>%
+  mutate(
+    week_end_day = fct_collapse(day_of_week,
+                                weekend = c("Sun", "Sat"),
+                                weekday = c("Mon", "Tue", "Wed", "Thu", "Fri"))
+  ) %>%
+  group_by(week_end_day) %>%
+  summarise(sum = sum(n))
+
+#creating plot with rodents captured
+ggplot(data = rodents_captured, 
+       aes(x = week_end_day, 
+           y = sum,
+           fill = week_end_day)) +
+  geom_bar(stat = "identity",
+           show.legend = FALSE) +
+  labs(x = "Day of Week", 
+       title = "Total Number of Rodents Captured") +
+  ylab(NULL) +
+  ylim(0, 20000) +
+  theme_light() +
+  theme(plot.title.position = "plot")
+```

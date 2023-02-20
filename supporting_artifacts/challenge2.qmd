@@ -1,0 +1,61 @@
+---
+title: "Challenge 2"
+author: "Kaleigh Chi"
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute: 
+  echo: true
+  error: true
+---
+
+## Hot - Exploring ggplot2 Annotation
+
+```{r}
+library(tidyverse)
+library(here)
+```
+
+```{r}
+surveys <- read_csv(here("Week 2", "Lab 2", "surveys.csv"))
+```
+
+```{r}
+# source for learning about theme and removing legend: 
+# https://www.statology.org/remove-legend-ggplot2/
+
+# globally groups distribution of weight by species, color codes distributions by genus, displays weight on the x axis, and displays species on the y axis
+ggplot(data = surveys,
+       mapping = aes(x = weight,
+                     y = species,
+                     group = species,
+                     color = genus)) +
+  # removes the outliers from displayed boxplot outputs
+  geom_boxplot(outlier.shape = NA) + 
+  # label the x and y axes accordingly
+  labs(x = "Weight of animals (grams)", 
+       y = "Species of animal") +
+  # theme function to remove the legend from view
+  theme(legend.position="none") +
+  # gives the graph a gray background and white lines
+  theme_gray() +
+  # set the limit for x axis to display between 0 and 400 grams
+  xlim(0, 400) +
+  # annotate each species by genus and adjusted placement according to boxplots
+  annotate("text", y = 1, x = 320, label = "Neotama") +
+  annotate("text", y = 2, x = 125, label = "Chaetodipus") +
+  annotate("text", y = 3, x = 110, label = "Peromyscus") +
+  annotate("text", y = 4, x = 100, label = "Perognathus") +
+  annotate("text", y = 5, x = 100, label = "Reithrodontomys") +
+  annotate("text", y = 6, x = 180, label = "Sigmodon") +
+  annotate("text", y = 7, x = 110, label = "Onychomys") +
+  annotate("text", y = 8, x = 100, label = "Peromyscus") +
+  annotate("text", y = 9, x = 100, label = "Reithrodontomys") +
+  annotate("text", y = 10, x = 120, label = "Dipodomys") +
+  annotate("text", y = 11, x = 130, label = "Dipodomys") +
+  annotate("text", y = 12, x = 100, label = "Chaetodipus") +
+  annotate("text", y = 13, x = 230, label = "Dipodomys") +
+  annotate("text", y = 14, x = 80, label = "Onychomys")
+```

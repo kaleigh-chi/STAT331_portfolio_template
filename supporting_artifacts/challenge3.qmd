@@ -1,0 +1,100 @@
+---
+title: "Challenge 3"
+author: "Kaleigh Chi"
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute: 
+  eval: true
+  error: true
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
+
+# Challenge 3: Group Comparisons & Data Ethics
+
+## Published Comparisons
+
+Let us instead compare the number of artists participants reported liking for each genre. Specifically, you will determine which music genre most differentiates each of the demographic groups provided.
+
+> Which genre had much higher average (mean or median) reported artists in one group than the other.
+>
+> -   Male versus Female
+>
+> <!-- -->
+>
+> -   White versus Non-White
+
+# Loading in Packages
+
+```{r loading-packages}
+library(tidyverse)
+library(here)
+
+hiphop <- read_csv(here("Week 3", "Lab 3", "hiphop.csv"))
+```
+
+# Comparing Male vs Female
+
+```{r male-vs-female}
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
+
+hiphop_mean
+```
+
+For males, they had the highest genre average for rock music (3.0588) and the lowest genre average for unclassifiable music (0.0392).
+
+For females, they had the highest genre average for alternative music (2.2136) and the lowest genre average for unclassifiable music (0.0598).
+
+# Comparing White vs Non-White
+
+```{r ethnic-category}
+hiphop <- hiphop |>
+  mutate(
+    ethnic_cat = if_else(ethnic == "white", 
+                     "white", 
+                     "non-white")
+  )
+```
+
+```{r white-vs-nonwhite}
+hiphop_ethnic <- hiphop %>%
+  group_by(ethnic_cat) %>%
+  summarize(across(intl:unclassifiable,  ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(c("intl":"unclassifiable"))
+
+hiphop_ethnic
+```
+
+For non-whites, they had the highest genre average of hip hop (2.1818). For non-whites, they had the lowest genre average of unclassified (0.0909).
+
+For whites, they had the highest genre average of rock (2.5703). For whites, they had the lowest genre average of unclassified (0.0444).
+
+# Study Design Critique \-- Data Ethics
+
+> Based on the design of this study and its context (African American English), what are \*\*at least two\*\* concerns you have? Keep in mind this critique aligns with conversations regarding data ethics. Thus, your concerns need to address the racial aspects of the design of this study.
+
+I am concerned that the participants were University of Minnesota students with the overwhelming majority of the participants in this study (over 80%) are white. The lack of representation is not reflective of the overall ethnic population in America. Furthermore, the collection of the data was taken from students whose incentives were to receive course credit. It concerns me that the participants may not have taken the study as seriously or accurately reflected their views.
+
+The second concern I have is the design of the study throws in questions of pop culture that they say is associated to African American English. I understand there is a correlation of music to language, but to include pop culture questions assumes that people familiar with the African American English have a certain culture.
+
+# Reflection
+
+Based on my feedback, I realized that I was not writing the most efficient code for my Challenge 3. I got a suggestion to put all the means in one table for each music type. Originally, I filtered the data set to look at distinct subjects, then I selected the respective genre columns, summarized across the genre columns, then found the mean of an individual genre column, and repeated the lines for each genre. This was all very inefficient. Looking back, I didn't need to filter for distinct subjects since it would not affect the mean. It is also very long-winded when I have multiple lines picking apart the columns, only to examine one genre at a time.
+
+I used this source in order to guide my understanding of the summarize argument and learned how to incorporate my "across" and "mean" functions:
+
+https://dplyr.tidyverse.org/reference/summarise_all.html
+
+I used this source to learn more about the "across" function since I did not feel that my working knowledge of it was strong:
+
+https://www.tidyverse.org/blog/2020/04/dplyr-1-0-0-colwise/
+
+Lastly, my tables were originally too wide to see in the rendered Quarto file, so I pivoted the tables. I pivoted my dataframes in my R chunks and displayed them to show my audience the data so they can compare the means of genres by their respective groupings.

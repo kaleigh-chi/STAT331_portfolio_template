@@ -11,9 +11,9 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an \_\_.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be a B.
 
-[**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from a Lab or Challenge assignment where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
+[**Learning Objective Evidence:**]{.underline} In the code chunks below, I provide code from a Lab or Challenge assignment where you believe you have demonstrated proficiency with the specified learning target. I also specified **where** the code came from (e.g., Lab 4 Question 2).
 
 ## Working with Data
 
@@ -22,25 +22,60 @@ execute:
 -   `csv`
 
 ```{r wd-1-csv}
+#Lab 5, Revisiting Lab 2
 
+library(tidyverse)
+library(here)
+
+surveys <- read_csv(here("STAT331", "Week 2", "Lab 2", "surveys.csv"))
 ```
 
 -   `xlsx`
 
 ```{r wd-1-xlsx}
+#PA 4, Data Import
 
+library(readxl) 
+library(tidyverse)
+
+
+military <- read_xlsx(here::here("STAT331", 
+                                 "Week 4", 
+                                 "Practice Activity", 
+                                 "gov_spending_per_capita.xlsx"), 
+                      sheet = "Share of Govt. spending", 
+                      skip = 7, 
+                      n_max = 190)
 ```
 
 -   `txt`
 
 ```{r wd-1-txt}
+#PA 5.1: Regular Expressions, Setup
 
+library(tidyverse)
+
+message <- read_csv(here::here("STAT331", "Week 5", "PracticeActivity", "scrambled_message.txt"))
 ```
 
 **WD-2: I can select necessary columns from a dataset.**
 
 ```{r wd-2}
+#Challenge 4, joining data with avocado data set
 
+zillow <- zillow %>%
+  pivot_longer(cols = `1/31/2015`:`9/30/2017`,
+               names_to = "date",
+               values_to = "prices") %>%
+  select(region, date, prices) %>%
+  separate(date, c("month", "day", "year"), sep = "/") %>%
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month)
+  ) %>%
+  select(region, year, month, prices) %>%
+  group_by(region, year, month) %>%
+  summarise(meanHome = mean(prices))
 ```
 
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -48,25 +83,50 @@ execute:
 -   numeric
 
 ```{r wd-3-numeric}
+#Lab 3, Problem 11
 
+hiphop_clean %>%
+  filter(age < 20) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_max(Mean, n = 5)
 ```
 
 -   character -- specifically a string
 
 ```{r wd-3-string}
+#Lab 3, Problem 12
 
+hiphop_clean %>%
+  filter(ethnic_cat == "non-white", sex == "Female") %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_max(Mean, n = 5)
 ```
 
 -   factor
 
 ```{r wd-3-factor}
+#Lab 3, Problem 14
 
+hiphop_clean %>%
+  filter(sex == "Male", 
+         ethnic == "white", 
+         16 < age, 
+         age < 24, 
+         word == "[to be] ghost",
+         city > 9999,
+         city < 60001,) %>%
+  slice_max(bieber, n = 5)
 ```
 
 -   date
 
 ```{r wd-3-date}
+#PA 5: Dates and Time, Problem 1
 
+suspects <- suspects %>%
+  filter(pm(Time.Spotted))
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -74,25 +134,55 @@ execute:
 -   numeric
 
 ```{r wd-4-numeric}
+#Challenge 4, joining data with avocado data set
 
+zillow <- zillow %>%
+  pivot_longer(cols = `1/31/2015`:`9/30/2017`,
+               names_to = "date",
+               values_to = "prices") %>%
+  select(region, date, prices) %>%
+  separate(date, c("month", "day", "year"), sep = "/") %>%
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month)
+  ) %>%
+  select(region, year, month, prices) %>%
+  group_by(region, year, month) %>%
+  summarise(meanHome = mean(prices))
 ```
 
 -   character -- specifically a string
 
 ```{r wd-4-string}
+#PA 5.1: Regular Expressions, Decode a Message - Problem 3
 
+message <- message %>%
+  mutate(
+    Word = str_remove_all(Word, pattern = "ugh+h(\\?|\\!)"),
+    Word = str_remove_all(Word, pattern = "ugh(\\?|\\!|\\.)")
+  )
 ```
 
 -   factor
 
 ```{r wd-4-factor}
+#Lab 3, Problem 5
 
+hiphop_clean <- hiphop |>
+  mutate(
+    across(c(jayz, jayz1, barkley, boondocks, boondocks1, monique, bieber), factor))
 ```
 
 -   date
 
 ```{r wd-4-date}
+#PA 5: Dates and Time, Problem 1
 
+suspects <- suspects %>%
+  mutate(Time.Spotted = ymd_hms(Time.Spotted),
+         Time.Spotted = force_tz(Time.Spotted, 
+                                 tzone = "America/Los_Angeles")
+         )
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -100,25 +190,34 @@ execute:
 -   `left_join()`
 
 ```{r wd-5-left}
-
+#N/A
 ```
 
 -   `right_join()`
 
 ```{r wd-5-right}
+#Preview Activity 4
 
+right_join(prof_info, prof_course)
 ```
 
 -   `inner_join()`
 
 ```{r wd-5-inner}
+#Preview Activity 4
 
+inner_join(prof_info, prof_course)
 ```
 
 -   `full_join()`
 
 ```{r wd-5-full}
+#Challenge 4, joining data with avocado data set
 
+join_avocado <- full_join(zillow, 
+                          avocado_cali, 
+                          by = c("region", "month", "year")) %>%
+  drop_na()
 ```
 
 **WD-6: I can use filtering joins to filter rows from a dataframe.**
@@ -126,13 +225,23 @@ execute:
 -   `semi_join()`
 
 ```{r wd-6-semi}
+#Lab 4, Problem 5
 
+avocado_clean <- semi_join(avocado, avocado_metro, by = "region") %>%
+  filter(region == 'LosAngeles' | region == 'NewYork' | 
+         region == "DallasFtWorth" | region == 'Houston' | 
+         region == 'PhoenixTucson') %>%
+  group_by(region) %>%
+  mutate(mean_total_volume = mean(`Total Volume`)) 
 ```
 
 -   `anti_join()`
 
 ```{r wd-6-anti}
+#PA 4, Problem 4
 
+military_clean <- military_clean |> 
+  anti_join(cont_region, by = c("Country" = "Region"))
 ```
 
 **WD-7: I can pivot dataframes from long to wide and visa versa**
@@ -140,33 +249,100 @@ execute:
 -   `pivot_longer()`
 
 ```{r wd-7-long}
+#Challenge 4, joining data with avocado data set
 
+zillow <- zillow %>%
+  pivot_longer(cols = `1/31/2015`:`9/30/2017`,
+               names_to = "date",
+               values_to = "prices") %>%
+  select(region, date, prices) %>%
+  separate(date, c("month", "day", "year"), sep = "/") %>%
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month)
+  ) %>%
+  select(region, year, month, prices) %>%
+  group_by(region, year, month) %>%
+  summarise(meanHome = mean(prices))
 ```
 
 -   `pivot_wider()`
 
 ```{r wd-7-wide}
+#Lab 4, Question 6
 
+avocado_ca <- avocado_metro %>%
+  filter(region == 'LosAngeles' | region == 'SanDiego' | region == 'Sacramento' | region == 'SanFrancisco') %>%
+  group_by(type, region) %>%
+  summarize(mean = mean(AveragePrice)) %>%
+  pivot_wider(names_from = type, values_from = mean) %>%
+  mutate(differences = abs(conventional - organic))
 ```
 
 ## Reproducibility
 
 **R-1: I can create professional looking, reproducible analyses using RStudio projects, Quarto documents, and the here package.**
 
-I've done this in the following provided assignments:
+I've done this in the following provided assignments: Lab 2, , Challenge 3, Challenge 4
 
 **R-2: I can write well documented and tidy code.**
 
 -   Example 1
 
 ```{r r-2-1}
+#Challenge 2
 
+# globally groups distribution of weight by species, color codes distributions by genus, displays weight on the x axis, and displays species on the y axis
+ggplot(data = surveys,
+       mapping = aes(x = weight,
+                     y = species,
+                     group = species,
+                     color = genus)) +
+  # removes the outliers from displayed boxplot outputs
+  geom_boxplot(outlier.shape = NA) + 
+  # label the x and y axes accordingly
+  labs(x = "Weight of animals (grams)", 
+       y = "Species of animal") +
+  # theme function to remove the legend from view
+  theme(legend.position="none") +
+  # gives the graph a gray background and white lines
+  theme_gray() +
+  # set the limit for x axis to display between 0 and 400 grams
+  xlim(0, 400) +
+  # annotate each species by genus and adjusted placement according to boxplots
+  annotate("text", y = 1, x = 320, label = "Neotama") +
+  annotate("text", y = 2, x = 125, label = "Chaetodipus") +
+  annotate("text", y = 3, x = 110, label = "Peromyscus") +
+  annotate("text", y = 4, x = 100, label = "Perognathus") +
+  annotate("text", y = 5, x = 100, label = "Reithrodontomys") +
+  annotate("text", y = 6, x = 180, label = "Sigmodon") +
+  annotate("text", y = 7, x = 110, label = "Onychomys") +
+  annotate("text", y = 8, x = 100, label = "Peromyscus") +
+  annotate("text", y = 9, x = 100, label = "Reithrodontomys") +
+  annotate("text", y = 10, x = 120, label = "Dipodomys") +
+  annotate("text", y = 11, x = 130, label = "Dipodomys") +
+  annotate("text", y = 12, x = 100, label = "Chaetodipus") +
+  annotate("text", y = 13, x = 230, label = "Dipodomys") +
+  annotate("text", y = 14, x = 80, label = "Onychomys")
 ```
 
 -   Example 2
 
 ```{r r-2-2}
+#Lab 4, Problem 7
 
+ggplot(avocado_ca, aes(fill = size, 
+                       x = region, 
+                       y = mean)) +
+  geom_bar(position = position_fill(reverse = TRUE), 
+           stat = "identity") +
+  scale_fill_manual("Avocado Size", 
+                    values = c("lightgreen", "royalblue", "lightblue")) + 
+  facet_grid(.~type) +
+  labs(x = "Region of CA", 
+       y = "Proportion of Mean Avocados Sold") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
 ```
 
 **R-3: I can write robust programs that are resistant to changes in inputs.**
@@ -174,13 +350,36 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r r-3-1}
+#Lab 5, Captures over the week - Question 1
 
+rodents_captured <- surveys %>%
+  filter(taxa == "Rodent") %>%
+  select(day_of_week) %>%
+  group_by(day_of_week) 
+
+rodents_captured <- count(rodents_captured, 
+                          'day_of_week') %>%
+  drop_na()
 ```
 
 -   Example 2
 
 ```{r r-3-2}
+#Challenge 4, Joining Data with Avocado Data set
 
+zillow <- zillow %>%
+  pivot_longer(cols = `1/31/2015`:`9/30/2017`,
+               names_to = "date",
+               values_to = "prices") %>%
+  select(region, date, prices) %>%
+  separate(date, c("month", "day", "year"), sep = "/") %>%
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month)
+  ) %>%
+  select(region, year, month, prices) %>%
+  group_by(region, year, month) %>%
+  summarise(meanHome = mean(prices))
 ```
 
 ## Data Visualization & Summarization
@@ -190,25 +389,67 @@ I've done this in the following provided assignments:
 -   numeric variables
 
 ```{r dvs-1-num}
+#Lab 2, Problem 7
 
+ggplot(data = surveys) +
+  geom_jitter(mapping = aes(x = weight, 
+                            y = hindfoot_length)) +
+  facet_wrap(~ species)
 ```
 
 -   numeric variables and categorical variables
 
 ```{r dvs-2-num-cat}
+#Lab 5, Captures over the Week - Problem 3
 
+ggplot(data = rodents_captured, 
+       aes(x = week_end_day, 
+           y = sum,
+           fill = week_end_day)) +
+  geom_bar(stat = "identity",
+           show.legend = FALSE) +
+  labs(x = "Day of Week", 
+       title = "Total Number of Rodents Captured") +
+  ylab(NULL) +
+  ylim(0, 20000) +
+  theme_light() +
+  theme(plot.title.position = "plot")
 ```
 
 -   categorical variables
 
 ```{r dvs-2-cat}
+#Lab 3, Problem 10
 
+ggplot(hiphop_clean) +
+  geom_histogram(mapping = aes(y=ethnic, fill=sex),
+                 stat = "count", 
+                 position = "stack",
+                 color = "black") +
+  labs(title = "Hip Hop Study: Distribution of Racial Categories by Sex",
+       y = "Racial Categories",
+       x = "Frequency",
+       fill = "Sex") +
+  theme_light()
 ```
 
 -   dates
 
 ```{r dvs-2-date}
+#Lab 5, Time Series Plot - Problem 4
 
+ggplot(data = mean_weight_vary, 
+       aes(x = year, 
+           y = mean_weight, 
+           col = fct_rev(fct_reorder(genus,                       
+                                     mean_weight)))) +
+  geom_line() +
+  scale_color_discrete(guide = guide_legend(title = "Genus")) +
+  labs(x = "Year", 
+       title = "Average Genus Weight Variation throughout Duration of Study") +
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
 ```
 
 **DVS-2: I use plot modifications to make my visualization clear to the reader.**
@@ -216,13 +457,36 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dvs-2-1}
+#Lab 4, Problem 7
 
+ggplot(avocado_ca, aes(fill = size, 
+                       x = region, 
+                       y = mean)) +
+  geom_bar(position = position_fill(reverse = TRUE), 
+           stat = "identity") +
+  scale_fill_manual("Avocado Size", 
+                    values = c("lightgreen", "royalblue", "lightblue")) + 
+  facet_grid(.~type) +
+  labs(x = "Region of CA", 
+       y = "Proportion of Mean Avocados Sold") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2))
 ```
 
 -   Example 2
 
 ```{r dvs-2-2}
+#Lab 4, Problem 5
 
+ggplot(avocado_clean, aes(x = `Total Volume`, y  = region, fill = region)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("cadetblue", "darkseagreen", "lavender", "khaki", "paleturquoise")) +
+  scale_x_continuous(labels = scales::comma) + 
+  theme_light() + 
+  labs(y = "Metro Region", 
+       x = "Total Volume of Avocados Sold", 
+       fill = "Metro Region", 
+       title = "Avocados Sold by the Top 5 Avocado Selling Metro Regions in the US")
 ```
 
 **DVS-3: I show creativity in my visualizations**
@@ -230,13 +494,33 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dvs-3-1}
+#Lab 4, Problem 5
 
+ggplot(avocado_clean, aes(x = `Total Volume`, y  = region, fill = region)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("cadetblue", "darkseagreen", "lavender", "khaki", "paleturquoise")) +
+  scale_x_continuous(labels = scales::comma) + 
+  theme_light() + 
+  labs(y = "Metro Region", 
+       x = "Total Volume of Avocados Sold", 
+       fill = "Metro Region", 
+       title = "Avocados Sold by the Top 5 Avocado Selling Metro Regions in the US")
 ```
 
 -   Example 2
 
 ```{r dvs-3-2}
+#Challenge 4, Avocado vs Housing Prices Plot
 
+ggplot(data = join_avocado, aes(x = meanAvocado, y = meanHome)) +
+  geom_point(color = "steelblue") +
+  geom_smooth(method = "lm", se = TRUE, color = "orange") +
+  facet_wrap(~region, ncol = 2) +
+  labs(y = "Average Price of Home",
+       x = "Average Price of Avocado",
+       title = "Avocado Prices vs Homes in Major California Cities") +
+  scale_x_continuous(labels = scales::dollar) +
+  scale_y_continuous(labels = scales::dollar) 
 ```
 
 **DVS-4: I can calculate numerical summaries of variables.**
@@ -244,13 +528,23 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dvs-4-1}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
 ```
 
 -   Example 2
 
 ```{r dvs-4-2}
+#Challenge 3, Comparing White vs Non-White
 
+hiphop_ethnic <- hiphop %>%
+  group_by(ethnic_cat) %>%
+  summarize(across(intl:unclassifiable,  ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(c("intl":"unclassifiable"))
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
@@ -258,13 +552,23 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dvs-5-1}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
 ```
 
 -   Example 2
 
 ```{r dvs-5-2}
+#Challenge 3, Comparing White vs Non-White
 
+hiphop_ethnic <- hiphop %>%
+  group_by(ethnic_cat) %>%
+  summarize(across(intl:unclassifiable,  ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(c("intl":"unclassifiable"))
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
@@ -272,13 +576,26 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dvs-6-1}
+#Lab 4, Problem 3
 
+avocado_clean %>%
+  filter(avocado_clean$year == 2017, 
+         avocado_clean$type == 'organic') %>%
+  group_by(region) %>%
+  summarize(Sum = sum((`4046`))) %>%
+  mutate(Sum = sort(Sum, decreasing = TRUE))
 ```
 
 -   Example 2
 
 ```{r dvs-6-2}
+#Lab 4, Problem 5
 
+avocado_metro %>%
+  group_by(region) %>%
+  summarize(mean_total_volume = mean(`Total Volume`)) %>%
+  slice_max(mean_total_volume, 
+            n = 10)
 ```
 
 **DVS-7: I show creativity in my tables.**
@@ -286,13 +603,27 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dvs-7-1}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
+
+hiphop_mean
 ```
 
 -   Example 2
 
 ```{r dvs-7-2}
+#Challenge 3, Comparing White vs Non-White
 
+hiphop_ethnic <- hiphop %>%
+  group_by(ethnic_cat) %>%
+  summarize(across(intl:unclassifiable,  ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(c("intl":"unclassifiable"))
+
+hiphop_ethnic
 ```
 
 ## Program Efficiency
@@ -302,19 +633,32 @@ I've done this in the following provided assignments:
 -   using a single function call
 
 ```{r pe-1-one-call}
+#Challenge 4, Joining Data with Avocado Data set
 
+avocado_ca <- avocado %>%
+  filter(region == 'LosAngeles' | region == 'SanDiego' | region == 'Sacramento' | region == 'SanFrancisco')
 ```
 
 -   `across()`
 
 ```{r pe-1-across}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
 ```
 
 -   `map()` functions
 
 ```{r pe-1-map-1}
+#Lab 2, Question 7
 
+ggplot(data = surveys) +
+  geom_jitter(mapping = aes(x = weight, 
+                            y = hindfoot_length)) +
+  facet_wrap(~ species)
 ```
 
 **PE-2: I can write functions to reduce repetition in my code.**
@@ -322,13 +666,23 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r pe2-1}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
 ```
 
 -   Example 2
 
 ```{r pe2-2}
+#Challenge 3, Comparing White vs Non-White
 
+hiphop_ethnic <- hiphop %>%
+  group_by(ethnic_cat) %>%
+  summarize(across(intl:unclassifiable,  ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(c("intl":"unclassifiable"))
 ```
 
 **PE-3:I can use iteration to reduce repetition in my code.**
@@ -336,17 +690,38 @@ I've done this in the following provided assignments:
 -   `across()`
 
 ```{r pe-3-across}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
 ```
 
 -   `map()` functions (Provide 2 Examples)
 
 ```{r pe-3-map-1}
+#Lab 3, Question 10
 
+ggplot(hiphop_clean) +
+  geom_histogram(mapping = aes(y=ethnic, fill=sex),
+                 stat = "count", 
+                 position = "stack",
+                 color = "black") +
+  labs(title = "Hip Hop Study: Distribution of Racial Categories by Sex",
+       y = "Racial Categories",
+       x = "Frequency",
+       fill = "Sex") +
+  theme_light()
 ```
 
 ```{r pe-3-map-2}
+#Lab 2, Question 7
 
+ggplot(data = surveys) +
+  geom_jitter(mapping = aes(x = weight, 
+                            y = hindfoot_length)) +
+  facet_wrap(~ species)
 ```
 
 **PE-4: I can use modern tools when carrying out my analysis.**
@@ -354,13 +729,29 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r pe-4-1}
+#Lab 3, Question 11
 
+hiphop_clean %>%
+  filter(age < 20) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_max(Mean, n = 5)
+hiphop_clean %>%
+  filter(age < 20) %>%
+  group_by(word) %>%
+  summarise(Mean = mean(as.integer(familiarity))) %>%
+  slice_min(Mean, n = 5)
 ```
 
 -   Example 2
 
 ```{r pe-4-2}
+#Challenge 3, Comparing Male vs Female
 
+hiphop_mean <- hiphop %>%
+  group_by(sex) %>%
+  summarize(across(intl:unclassifiable, ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(cols = "intl":"unclassifiable")
 ```
 
 ## Data Simulation & Modeling
@@ -370,13 +761,39 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dsm-1-1}
+#Lab 5, Question 2
 
+mean_weight_vary <- surveys %>%
+  group_by(year, 
+           genus) %>%
+  summarize(mean_weight = mean(weight))
+
+ggplot(data = mean_weight_vary, 
+       aes(x = year, 
+           y = mean_weight, 
+           col = genus)) +
+  geom_line() +
+  labs(x = "Year", 
+       title = "Average Genus Weight Variation throughout Duration of Study") + 
+  ylab(NULL) +
+  theme_light() +
+  theme(plot.title.position = "plot")
 ```
 
 -   Example 2
 
 ```{r dsm-1-2}
+#Challenge 4, Avocado vs Housing Prices Plot
 
+ggplot(data = join_avocado, aes(x = meanAvocado, y = meanHome)) +
+  geom_point(color = "steelblue") +
+  geom_smooth(method = "lm", se = TRUE, color = "orange") +
+  facet_wrap(~region, ncol = 2) +
+  labs(y = "Average Price of Home",
+       x = "Average Price of Avocado",
+       title = "Avocado Prices vs Homes in Major California Cities") +
+  scale_x_continuous(labels = scales::dollar) +
+  scale_y_continuous(labels = scales::dollar) 
 ```
 
 **DSM-2: I can fit a linear regression and extract necessary summary measures.**
@@ -384,23 +801,48 @@ I've done this in the following provided assignments:
 -   Example 1
 
 ```{r dsm-2-1}
+#Challenge 4, Avocado vs Housing Prices Plot
 
+ggplot(data = join_avocado, aes(x = meanAvocado, y = meanHome)) +
+  geom_point(color = "steelblue") +
+  geom_smooth(method = "lm", se = TRUE, color = "orange") +
+  facet_wrap(~region, ncol = 2) +
+  labs(y = "Average Price of Home",
+       x = "Average Price of Avocado",
+       title = "Avocado Prices vs Homes in Major California Cities") +
+  scale_x_continuous(labels = scales::dollar) +
+  scale_y_continuous(labels = scales::dollar) 
 ```
 
 -   Example 2
 
 ```{r dsm-2-2}
+#Challenge 3, Comparing White vs Non-White
 
+hiphop_ethnic <- hiphop %>%
+  group_by(ethnic_cat) %>%
+  summarize(across(intl:unclassifiable,  ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(c("intl":"unclassifiable"))
+
+hiphop_ethnic
 ```
 
 ## Revising My Thinking
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
+I think I revised my thinking throughout this course by restructuring my approach to make code more user friendly. It's easy to make a code block run and carry out tasks, but it takes extra effort to make code more tidy by adding spaces and hitting enter after certain characters. Additionally, efficiency isn't something I was concerned about but condensing code to save a couple lines allows the computer to process the block faster. These were things I never really thought about that I've been growing on. When I move forward to my career or working with teams, I can't present messy or inefficient code because it's hard for people to read and makes work more inefficient.
+
+Based on the code examples I've provided in my portfolio, I've revised my thinking by structuring my R code blocks cleanly and adding features, especially to my visualization, that makes my outputs more user friendly.
+
 ## Extending My Thinking
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+I extended my thinking throughout this course by doing my own research and outsourcing R tricks to make my visualizations and code more clean and efficient. I've created comments in the original Quarto files that cited my sources for the code examples I've provided in this portfolio.
+
 ## Peer Support & Collaboration
 
 <!-- Include an image of feedback you gave that you are proud of (either in a peer review or in Discord) -->
+
+![Peer Review that I am proud of](images/PeerReview.JPG){fig-align="center"}

@@ -599,8 +599,7 @@ hiphop_mean <- hiphop %>%
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
 
-<<<<<<< HEAD
--   Example
+-   Example 1
 
 ```{r dvs-6-1}
 # Challenge 9, Problem 10 (Revised)
@@ -622,19 +621,11 @@ namesA %>%
   tab_options(heading.title.font.size = 20,
               table.background.color = "steelblue",
               heading.align = "left")
-=======
--   Example 1 (needs to come from challenge 9)
-
-```{r dvs-6-1}
-
-
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 ```
 
 -   Example 2
 
 ```{r dvs-6-2}
-<<<<<<< HEAD
 # Challenge 9, Problem 9 (Revised)
 
 namesA %>%
@@ -651,10 +642,6 @@ namesA %>%
   cols_label(State = "State") %>%
   tab_header(title = "Frequency of Baby 'Alan' Variations",
              subtitle = "California and Pennsyvlania in Year 2000")
-=======
-
-
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 ```
 
 **DVS-7: I show creativity in my tables.**
@@ -662,7 +649,6 @@ namesA %>%
 -   Example 1 ( needs to come from challenge 9)
 
 ```{r dvs-7-1}
-<<<<<<< HEAD
 # Challenge 9, Problem 10 (Revised)
 
 namesA %>%
@@ -683,15 +669,11 @@ namesA %>%
   tab_options(heading.title.font.size = 20,
               table.background.color = "steelblue",
               heading.align = "left")
-=======
-
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 ```
 
 -   Example 2
 
 ```{r dvs-7-2}
-<<<<<<< HEAD
 # Challenge 9, Problem 1 (Revised)
 
 namesA %>%
@@ -706,9 +688,6 @@ namesA %>%
   gt() %>%
   as.data.frame() %>%
   datatable() 
-=======
-
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 ```
 
 ## Program Efficiency
@@ -868,11 +847,7 @@ hiphop_mean <- hiphop %>%
 -   Example 1
 
 ```{r dsm-1-1}
-<<<<<<< HEAD
 # Practice Activity 9.2, Warmup
-=======
-# Practice Activity 9.2: Warmup
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 
 qunif(0.95, min = 1.5, max = 3.5)
 
@@ -888,11 +863,7 @@ sum(rnorm(100, mean = 4.6, sd = 0.8) < 4)
 -   Example 2
 
 ```{r dsm-1-2}
-<<<<<<< HEAD
 # Practice Activity 9.2, Catching a Con
-=======
-# Practice Activity 9.2: Catching a Con
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 
 set.seed(1957)
 
@@ -919,27 +890,19 @@ sum(my_weights < 4532)
 -   Example 1 ( these need to come from either practice activity 9.1 or lab 9)
 
 ```{r dsm-2-1}
-<<<<<<< HEAD
 # Lab 9, Problem 5 (Revised)
 
 estReg <- allison_f |>
   lm(F ~ Year, data = _)
-=======
-
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 ```
 
 -   Example 2
 
 ```{r dsm-2-2}
-<<<<<<< HEAD
 # Practice Activity 9.1
 
 modMys <- mystery |>
   lm(weight_before ~ weight_after, data = _)
-=======
-
->>>>>>> 74eff48b105b34fb37522173741feb3f15a795dd
 ```
 
 ## Revising My Thinking

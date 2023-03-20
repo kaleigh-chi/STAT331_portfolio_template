@@ -20,7 +20,7 @@ execute:
 library(tidyverse)
 library(here)
 
-surveys <- read_csv(here("STAT331", "Week 2", "Lab 2", "surveys.csv"))
+surveys <- read_csv(here("Week 2", "Lab 2", "surveys.csv"))
 ```
 
 ## Question 1: Reorder Species
@@ -28,13 +28,12 @@ surveys <- read_csv(here("STAT331", "Week 2", "Lab 2", "surveys.csv"))
 ```{r}
 # Learning about forcats with source: https://cran.r-project.org/web/packages/forcats/vignettes/forcats.html
 
-#using forcats in former Lab 2 plot
-species_plot <- surveys %>%
-  mutate(species = fct_reorder(species, 
-                               weight)) %>%
-  ggplot(aes(x = weight, 
-             y = species, 
-             group = species)) +
+# REVISION learning about forcats in ggplot with source: https://forcats.tidyverse.org/reference/fct_reorder.html
+
+species_plot <- ggplot(data = surveys, 
+                       aes(x = weight, 
+                           y = fct_reorder(species, weight), 
+                           group = species)) +
   geom_jitter(color = "tomato", 
               size = 0.4,
               alpha = 1/7) +
@@ -47,9 +46,11 @@ species_plot <- surveys %>%
 
 ```{r}
 #getting rid of y labels
+
+# REVISION learning how to put ylab() = NULL inside of labs with source: https://stackoverflow.com/questions/41048767/removing-y-label-from-ggplot
+
 species_plot + 
-  ylab(NULL) +
-  labs(title = "Distribution of Various Species Weight") +
+  labs(title = "Distribution of Various Species Weight", y = NULL) +
   theme(plot.title.position = "plot")
 ```
 
@@ -76,8 +77,8 @@ ggplot(data = surveys,
            col = genus)) +
   geom_line() +
   labs(x = "Year", 
+       y = NULL,
        title = "Genus Weight Variation throughout Duration of Study") + 
-  ylab(NULL) +
   theme_light() +
   theme(plot.title.position = "plot")
 ```
@@ -100,8 +101,8 @@ ggplot(data = mean_weight_vary,
            col = genus)) +
   geom_line() +
   labs(x = "Year", 
-       title = "Average Genus Weight Variation throughout Duration of Study") + 
-  ylab(NULL) +
+       y = NULL,
+       title = "Average Genus Weight Variation throughout Duration of Study") +
   theme_light() +
   theme(plot.title.position = "plot")
 ```
@@ -113,12 +114,11 @@ ggplot(data = mean_weight_vary,
 ggplot(data = mean_weight_vary, 
        aes(x = year, 
            y = mean_weight, 
-           col = fct_rev(fct_reorder(genus,                       
-                                     mean_weight)))) +
+           col = fct_reorder2(genus, year, mean_weight))) +
   geom_line() +
   labs(x = "Year", 
+       y = NULL,
        title = "Average Genus Weight Variation throughout Duration of Study") +
-  ylab(NULL) +
   theme_light() +
   theme(plot.title.position = "plot")
 ```
@@ -130,15 +130,14 @@ ggplot(data = mean_weight_vary,
 ggplot(data = mean_weight_vary, 
        aes(x = year, 
            y = mean_weight, 
-           col = fct_rev(fct_reorder(genus,                       
-                                     mean_weight)))) +
+           col = fct_reorder2(genus, year, mean_weight))) +
   geom_line() +
-  scale_color_discrete(guide = guide_legend(title = "Genus")) +
   labs(x = "Year", 
-       title = "Average Genus Weight Variation throughout Duration of Study") +
-  ylab(NULL) +
+       y = NULL,
+       title = "Average Genus Weight Variation throughout Duration of Study",
+       col = "Genus") +
   theme_light() +
-  theme(plot.title.position = "plot")
+  theme(plot.title.position = "plot") 
 ```
 
 # 3. Captures over the week
@@ -162,13 +161,13 @@ rodents_captured <- count(rodents_captured,
 #creating plot for rodents captured
 ggplot(data = rodents_captured, 
        aes(x = day_of_week, 
-           y = n, fill = 
-             day_of_week)) +
+           y = n, 
+           fill = day_of_week)) +
   geom_bar(stat = "identity", 
            show.legend = FALSE) +
   labs(x = "Day of Week", 
+       y = NULL,
        title = "Number of Rodents Captured Throughout the Week") + 
-  ylab(NULL) +
   theme_light() +
   theme(plot.title.position = "plot")
 ```
@@ -177,20 +176,20 @@ ggplot(data = rodents_captured,
 
 ```{r}
 #reordering rodents captured 
-rodents_captured$day_of_week <- factor(rodents_captured$day_of_week, 
-                                       levels = c("Mon", "Tue", "Wed", 
-                                                  "Thu", "Fri", "Sat", "Sun"))
+order_week <- factor(rodents_captured$day_of_week, 
+                     levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"))
 
 #creating reordered plot for rodents captured
 ggplot(data = rodents_captured, 
        aes(x = day_of_week, 
            y = n, 
-           fill = day_of_week)) +
-  geom_bar(stat = "identity", 
+           fill = day_of_week,
+           col = fct_reorder(order_week, day_of_week))) +
+  geom_bar(stat = "identity",
            show.legend = FALSE) +
-  labs(x = "Day of Week", 
-       title = "Number of Rodents Captured Throughout the Week") + 
-  ylab(NULL) +
+  labs(x = "Day of Week",
+       y = NULL,
+       title = "Number of Rodents Captured Throughout the Week") +
   theme_light() +
   theme(plot.title.position = "plot")
 ```
@@ -199,26 +198,24 @@ ggplot(data = rodents_captured,
 
 ```{r}
 #collapsing days of week into different levels with forcats
-rodents_captured <- rodents_captured %>%
-  mutate(
-    week_end_day = fct_collapse(day_of_week,
+week_end_day <- fct_collapse(rodents_captured$day_of_week,
                                 weekend = c("Sun", "Sat"),
-                                weekday = c("Mon", "Tue", "Wed", "Thu", "Fri"))
-  ) %>%
-  group_by(week_end_day) %>%
-  summarise(sum = sum(n))
+                                weekday = c("Mon", "Tue", "Wed", "Thu", "Fri")
+                             )
 
 #creating plot with rodents captured
 ggplot(data = rodents_captured, 
-       aes(x = week_end_day, 
-           y = sum,
-           fill = week_end_day)) +
-  geom_bar(stat = "identity",
-           show.legend = FALSE) +
+       mapping = aes(x = week_end_day, y = n, fill = day_of_week)) +
+  geom_col() +
   labs(x = "Day of Week", 
+       y = NULL,
        title = "Total Number of Rodents Captured") +
-  ylab(NULL) +
   ylim(0, 20000) +
   theme_light() +
-  theme(plot.title.position = "plot")
+  theme(plot.title.position = "plot") 
 ```
+
+# Revisions
+Previously when I submitted my lab 5, I made a lot of extra steps in ordering my dataset and creating visualization features where I got successes on. On Lab 2 question 1 I was creating a new data set and reordering from there, question 2 used a y-axis label line, Time Series question 3 I was using fct_reorder(), question 4 I was calling color legend label outside of labs(), and Weekly Captures question 2 I didn't make use of forcats but instead used a factor function to create levels. Regarding question Captures Over Week question 2 I used forcats and dplyr functions. The output wasn't able to yield what I expected unfortunately.
+
+I think I was writing code methodically as it made sense to me. I now realize from Lab 2 question 1 to Time Series question 4, I could've made my code blocks more efficient when I added features within parentheses of existing functions or used forcats nested in my ggplots. For Time Series question 3, I quickly realized fct_reorder is more helpful for my case because it reorders factors by y values associated with the x values. This is helpful when I want to sort based on my genus weight. I realize that from Captures over Week question 2 I was supposed to be using forcats since it was the learning of the week. I think moving forward in the future it's extrememly useful for yielding different kinds of orders in my visualizations. 

@@ -287,17 +287,26 @@ I've done this in the following provided assignments: Challenge 4 and Lab 7.
 ```{r r-2-1}
 # Challenge 2
 
+# globally groups distribution of weight by species
+# color codes distributions by genus
+# displays weight on the x axis and displays species on the y axis
 ggplot(data = surveys,
        mapping = aes(x = weight,
                      y = species,
                      group = species,
                      color = genus)) +
+  # removes the outliers from displayed boxplot outputs
   geom_boxplot(outlier.shape = NA) + 
+  # label the x and y axes accordingly
   labs(x = "Weight of animals (grams)", 
        y = "Species of animal") +
+  # theme function to remove the legend from view
   theme(legend.position="none") +
+  # gives the graph a gray background and white lines
   theme_gray() +
+  # set the limit for x axis to display between 0 and 400 grams
   xlim(0, 400) +
+  # annotate each species by genus and adjusted placement according to boxplots
   annotate("text", y = 1, x = 320, label = "Neotama") +
   annotate("text", y = 2, x = 125, label = "Chaetodipus") +
   annotate("text", y = 3, x = 110, label = "Peromyscus") +

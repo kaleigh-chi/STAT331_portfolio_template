@@ -1,0 +1,229 @@
+---
+title: "Lab 4"
+author: "Kaleigh Chi"
+format: 
+  html:
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute:
+  echo: true
+  error: true
+  message: false
+  warnings: false
+editor: visual
+---
+
+# Introduction and Set-up
+
+```{r load-in-avocado}
+#| message: false
+
+#Question 0
+library(tidyverse)
+library(here)
+
+avocado <- read_csv(here("Week 4", "Lab 4", "avocado.csv"))
+```
+
+```{r examining-avocado}
+
+#Question 1
+str(avocado)
+```
+
+Question 1: This data set contains information on 18249 weekly observations of avocado sold from different locations from 2015 to 2018. There is a total of 14 variables recorded in the data set. There are num variables for total bags of avocados sold, small bags of avocados sold, large bags of avocados sold, average avocado prices, total number of avocados sold, total number of avocados with PLU 4046, PLU 4225, and PLU 4770. There is a Date variable for the avocado sale date observed, and chr variables for type of avocado observed and the region the avocado sale was observed.
+
+## Question 2
+
+\*\*Q2 - G This lab focuses on filtering joins so I would like to see you use filtering joins to obtain two datasets: major_regions and metro_regions. Additionally, you have not dealt with the non-major regions. What about SouthCarolina? WestTexNewMexico? GrandRapids is a city in Michigan! I would also recommend renaming the columns of the dataframe to \*\*describe\*\* what type / size of avocado each PLU represents.\*\*
+
+```{r avocado-clean-up}
+#Question 2 - Cleaning up avocados dataset to include regions
+
+avocado_clean <- avocado %>%
+  mutate(
+    type = as.factor(type),
+    region = as.factor(region)
+  ) %>%
+  rename("small" = '4046',
+         "large" = '4225',
+         "xlarge" = '4770')
+```
+
+```{r}
+majorRegion <- data.frame(
+  region = c("Northeast", "West", "Southeast", "Midsouth",
+             "NorthernNewEngland", "Plains", "SouthCentral", "GreatLakes",
+             "TotalUS", "WestTexNewMexico")
+  )
+
+states <- data.frame(
+  region = c("California", "SouthCarolina")
+)
+```
+
+```{r}
+majorRegAvo <- avocado_clean %>%
+  semi_join(majorRegion, by = "region") %>%
+  filter(region != "TotalUS")
+
+statesAvo <- avocado_clean %>%
+  semi_join(states, by = "region")
+
+metroAvo <- avocado_clean %>%
+  anti_join(majorRegion, by = "region") %>%
+  anti_join(states, by = "region")
+```
+
+# Summarizing Avocado Sales
+
+## Question 3
+
+**Q3 - G I want your output to be the one region with the most avocado sales. Also, consider if you need to mutate() to find the largest region total?**
+
+```{r most-organic-small-hass-avocados-2017}
+#Question 3 - Most organic small hass avocados in 2017
+
+majorRegAvo %>%
+  filter(year == 2017 & type == "organic") %>%
+  group_by(region) %>%
+  summarize(Sum = sum((small))) %>%
+  slice_max(Sum, n = 1)
+```
+
+Question 3: The West Region sold the most organic volume of small avocados in 2017.
+
+## Question 4
+
+```{r month-highest-volume-sales}
+#Question 4 - Month with the highest volume of sales
+
+# learned to use the separate() function with source: https://uc-r.github.io/tidyr
+
+majorRegAvo %>%
+  separate(Date, 
+           sep="-", 
+           into = c("year", "month", "day")) %>%
+  group_by(month) %>%
+  summarize(Sum = sum(`Total Volume`)) %>%
+  slice_max(Sum)
+```
+
+Question 4: February had the highest volume of avocado sales.
+
+## Question 5
+
+**Q5 - G How many cities did I ask for? You found the top regions and their names in the previous step. If you store these values in a dataframe, you can use this dataframe to filter rather than typing out the names a second time. Again, the focus of this lab is on filtering joins, so I would like to see you use them! Fun colors, but your legend has the same information as your y-axis, so I would recommend removing it. We don't want to have redundant information in our plots!**
+
+```{r cleaning-metro-region}
+#Question 5 - Cleaning metro region dataset
+
+#top 5 highest average volume sales of avocado in metro regions
+top5 <- metroAvo %>%
+  group_by(region) %>%
+  summarize(mean_total_volume = mean(`Total Volume`)) %>%
+  slice_max(mean_total_volume, 
+            n = 5)
+```
+
+```{r plots}
+#Question 5 continuing - Plot
+
+#learned how to use scale_y_continuous with source: https://ggplot2.tidyverse.org/reference/scale_continuous.html
+#learned how to use scale_fill_manual with source: https://stackoverflow.com/questions/36048033/manually-colouring-plots-with-scale-fill-manual-in-ggplot2-not-working 
+#referenced R colors with source: https://www.nceas.ucsb.edu/sites/default/files/2020-04/colorPaletteCheatsheet.pdf
+
+metroAvo %>%
+  semi_join(top5, by = "region") %>%
+  ggplot(mapping = aes(x = `Total Volume`, y  = region, fill = region)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("cadetblue", "darkseagreen", "lavender", "khaki", "paleturquoise")) +
+  scale_x_continuous(labels = scales::comma) + 
+  theme_light() + 
+  labs(y = "Metro Region", 
+       x = "Total Volume of Avocados Sold", 
+       fill = "Metro Region", 
+       title = "Avocados Sold by the Top 5 Avocado Selling Metro Regions in the US") +
+  theme(legend.position = "none")
+```
+
+The top 5 highest selling metro regions with the highest average Total Volume sold for avocados are Los Angeles, New York, Dallas Fort Worth, Houston, and Phoenix Tucson.
+
+# Reshaping
+
+## Question 6
+
+**Q6 - G It looks like you are filtering based on a vector of values. What operators have you learned to accomplish this task? Statisticians have a hard time with barplots for one summary statistic. To us, barplots are for counts of categorical variables. Can you think of a way to reimagine your plot without bars? You might find the following blog an interesting place to start! https://uc-r.github.io/cleveland-dot-plots**
+
+```{r organic-vs-conventional}
+#| message: false
+
+#Question 6 - Cleaning data for organic vs conventional in 4 major california regions
+caCities <- data.frame(
+  region = c("LosAngeles", "SanDiego", "Sacramento", "SanFrancisco")
+)
+
+avocado_ca <- metroAvo %>%
+  semi_join(caCities, by = "region") 
+```
+
+```{r}
+#| message: false
+# Question 6 continuing - Plot
+
+# reimagined plot with source: https://uc-r.github.io/cleveland-dot-plots
+
+avocado_ca %>%
+  group_by(region, type) %>%
+  summarize(mean = mean(AveragePrice)) %>%
+  ggplot(mapping = aes(x = region, y = mean, label = round(mean, 2))) +
+  geom_line(mapping = aes(group = region)) +
+  geom_point(mapping = aes(color = type)) +
+  geom_text(aes(color = type), size = 2, hjust = 1.5) +
+  theme_light() +
+  labs(x = "CA Regions", 
+       y = "Conventional vs Organic Avocado Price Differences", 
+       title = "Avocado Price Differences in 4 Major California Regions",
+       color = "Avocado Type") 
+```
+
+The greatest difference between the price of organic vs conventional avocados is found in San Francisco.
+
+## Question 7
+
+**Q7 - G Do you need to add a new column or summarize existing columns? Why do you need to join your datasets? You shouldn't need to use the unique() function!**
+
+```{r}
+#| message: false
+#Question 7 continuing - Plot
+
+#reference to set up stacked bar plot, source: https://r-graph-gallery.com/48-grouped-barplot-with-ggplot2.html
+#learned about dodge, source: https://datavizpyr.com/how-to-dodge-overlapping-text-on-x-axis-labels-in-ggplot2/
+
+avocado_ca %>%
+  select(c('small', 'large','xlarge', 'type', 'region')) %>%
+  pivot_longer(small:xlarge,
+               names_to = "avocadoSize",
+               values_to = "avocadoSold") %>%
+  group_by(region, avocadoSize, type) %>%
+  summarise(avocado_sold = sum(avocadoSold)) %>%
+
+  ggplot(mapping = aes(fill = avocadoSize,
+                       x = region,
+                       y = avocado_sold)) +
+  geom_bar(position = "fill",
+           stat = "identity") +
+  scale_fill_manual(name = "Avocado Size", values = c("royalblue", "lightblue", "lightgreen")) +
+  facet_grid(.~type) +
+  labs(x = "Region of CA",
+       y = "Proportion of Mean Avocados Sold") +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) 
+
+```
+
+# Revision
+
+This was the revision I wanted to submit for my portfolio because I had the most work to revise and there was so much I wanted to prove in terms of my R skills. Starting from Question 2, I missed the key point which was to make use of filtering joins - instead I used filters. Additionally, my knowledge gap in geographic locations caused me to miscategorize some regions on the list. That being said, I took the advice I received in my feedback which was to rename the columns of the dataframe to describe the PLU - this makes it so much easier to identify! Then I created dataframes of the major regions and cities. This would help me in creating new dataframes by filtering join the dataframes to exclude or include certain regions. It is really crucial to start off by creating the right dataframes because it sets me up for the rest of the assignment and what I refer my code blocks to.
+
+In my Question 3, I had to find one region with the most avocado sales. My poor understanding of the question caused me to print a whole table at first. Upon fixing my metro data, I filtered for one result with slice_max() to get the results. In Question 5, I didn't make use of the filtering joins. Initially, I was using filter() to narrow down my city results - which wasn't the point of this lab. I made sure to semi_join() the metro data with the top 5 cities the problem was asking for. In Question 6, I was filtering based on vectors of values. I changed this up was I made use of the semi_join() in order to filter for the California cities. Additionally, I got a comment to change from a barplot. My understanding is that barplots are only for categorical variable counts rather than being used for a summary statistic. I took the suggestion to visit https://uc-r.github.io/cleveland-dot-plots and decided to make use of the dot plot method. It's cleaner to look at and much easier to notice the range of our conventional vs organic prices. Moving forward, I'll keep in mind when it's appropriate and when it's not appropriate to use barplots. Lastly in Question 7, I was using the unique() function when I didn't need to. Based on my comments, I concluded I needed to summarize my columns in order to get the sum and to not join my datasets because it wasn't necessary. Instead, I simplified my initial submission to take the avocado_ca dataset, find the sums, and displayed a graph. I realize from doing this revision that I overshot a lot of the code by making things too complicated, repetitive, or lengthier than I needed to be. In addition to not making use of the concept for week 4, I realize that using filtering joins simplifies a lot of the process.

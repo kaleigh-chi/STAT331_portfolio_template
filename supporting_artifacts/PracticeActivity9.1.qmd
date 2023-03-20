@@ -1,0 +1,41 @@
+---
+title: "PracticeActivity9"
+format: html
+editor: visual
+---
+
+# PRACTICE ACTIVITY 9.1
+
+```{r}
+library(tidyverse)
+library(here)
+
+mystery <- read_csv(here("Week 9", "mystery_animal.csv"))
+```
+
+```{r}
+mystery %>%
+  ggplot(aes(x = weight_after, y = weight_before)) +
+  geom_point() +
+  stat_smooth(method = "lm", formula = y ~ x) + 
+  labs(x = "weight after", y = "weight before")
+```
+
+```{r}
+modMys <- mystery |>
+  lm(weight_before ~ weight_after, data = _)
+
+modMys
+```
+
+```{r}
+broom::augment(modMys)
+```
+
+```{r}
+modMys |>
+  broom::augment() |>
+  ggplot(mapping = aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  labs(x = "weight after", y = "weight before")
+```

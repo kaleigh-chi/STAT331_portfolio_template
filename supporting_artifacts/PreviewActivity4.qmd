@@ -55,6 +55,8 @@ inner_join(prof_info, prof_course)
 
 right_join(prof_info, prof_course)
 
+left_join(prof_info, prof_course)
+
 prof_course |>
   pivot_longer(cols = c(Stat_331, Stat_330, Stat_431),
                names_to = "course",

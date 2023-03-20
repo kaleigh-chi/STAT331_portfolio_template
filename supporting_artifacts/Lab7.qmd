@@ -1,0 +1,148 @@
+---
+title: "Lab7"
+author: "Kaleigh Chi"
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+    code-fold: true
+execute: 
+  echo: true
+  error: false
+  messages: false
+  warnings: false
+editor: visual
+---
+
+# The Data
+
+Loading in BlackfootFish.csv file
+
+```{r}
+#| message: false
+
+library(tidyverse)
+library(here)
+
+blackFootFish <- read_csv(here("Week 7", "Lab7", "BlackfootFish.csv"))
+```
+
+# Part 1: Summaries and Plots
+
+## 2.1 Summarizing Missing Data
+
+```{r}
+blackFootFish %>%
+  summarise(
+    across(
+      .cols = trip:species, 
+      .fns = ~sum(is.na(.x))
+      )
+    )
+```
+
+-   Weight is the only variable with missing values present.
+
+<!-- -->
+
+-   There are 1796 missing values in the weights variable.
+
+## 2.2 Visualizing Missing Data
+
+```{r}
+blackFootFish %>%
+  filter(is.na(weight)) %>%
+  mutate(
+    trip = factor(trip, 
+                  levels = c(1,2), 
+                  labels = c("Trip 1", "Trip 2")),
+    year = factor(year)
+  ) %>%
+  
+  ggplot(aes(x = year, fill = trip)) +
+    geom_bar(position = "stack") +
+    facet_wrap(. ~ section) +
+    labs(y = NULL,
+         x = "Year",
+         title = "Frequency of Missing Data Across Different River Sections from 1989 to 2006",
+         fill = "Trips") +
+    scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+    scale_fill_manual(values = c("darkorange", "darkturquoise")) +
+    theme(plot.title.position = "plot") 
+```
+
+# Part 2: Adjusting the Data (Function Writing)
+
+## 3.1 Writing a Function, 3.2 Adding Stops
+
+```{r}
+rescale_01 <- function(x) {
+  stopifnot(is.numeric(x), length(x) > 1)
+
+  max <- max(x, na.rm = TRUE)
+  min <- min(x, na.rm = TRUE)
+
+  x <- ((x - min) / (max - min))
+  return(x)
+}
+```
+
+## 3.3 Performing a Simple Test
+
+```{r}
+x <- c(1:85, NA)
+
+standardizedValues <- rescale_01(x)
+standardizedValues
+
+if(max(standardizedValues, 
+       na.rm = TRUE) == 1 &&
+   min(standardizedValues, 
+       na.rm = TRUE) == 0) {
+   print("The standardized vector is between 0 and 1.")
+ }
+```
+
+## 3.4 Performing a More Difficult Test
+
+```{r}
+#| layout-nrow: 2
+#| warning: false
+#| message: false
+
+ggplot(data = blackFootFish, aes(x = length)) +
+  geom_density()
+
+scaleFish <- blackFootFish %>%
+  mutate(lengthRescale = rescale_01(length)) 
+
+ggplot(data = scaleFish, aes(x = lengthRescale)) +
+  geom_density()
+```
+
+## 3.5 Incorporating Variables
+
+```{r}
+rescale_column <- function(df, rescaleVar){
+  df <- df %>%
+    mutate(across(.cols = {{rescaleVar}}, .fns = ~rescale_01(.x)))
+  return(df)
+}
+```
+
+## 3.6 Another Function Test
+
+```{r}
+blackFootFish %>%
+  rescale_column(length:weight)
+```
+
+# Reflection
+
+Alright, so for my first revision on this assignment, I edited Part 1 Q2.2 for Visualizing Missing Data. My initial issues were that I should make Trip and Year categorical. I didn't think about changing the variable types initially because I thought I could just simply plug and chug out a graph. But now I see how I should think of how to approach graphs before putting something together. I realize now the advantage of changing these variables to categorical with factor() would help me fix the values of Year to be a discrete set of year values that is better able to display on the x-axis, and it makes the Trip variable more identifiable with "Trip 1" for instance, instead of just "1".
+
+Going back to Part 2 Q3.1, I see in the instructions there was a tip to think about the efficiency of the function. My original code broke rescale_01() into two functions and there was redundancy with regards to the equation that included min and max. I consolidated both functions into one to eliminate redundancy and I see how much easier it is for readers to look at my code, because it's easier on my eyes as well.
+
+For Part 2 Q3.4, my second graph did not display to match the shape of my first graph. I had to go back through the code and made sure I was calling the right functions into the second graph. Because I wrote 2 functions in Q3.1, I think I got confused and messed up calling the right function to standardize for Q3.4. This is also why I see it's extremely important to reduce redundancy. I changed my graphs in Q3.4 to both be geom_density() from geom_histogram(). I thought about it and figured geom_density() was a better alternative to display continuous data and visually easier to compare the distribution shapes since it would be smoothed with geom_density().
+
+For Part 2 Q3.5, my error was coming from the mutate because I was initially using the walrus operator. I read my Part 2 Q3.6 comment that I needed to condense the rescale_column() call into one line. Upon going back to the Week 7 Thursday slides, I remembered that the walrus operator wasn't necessary and only modified one column. I first fixed Q3.6 to take in both weight and length. Then I decided to use across() since it would be best for going across multiple columns. I realize now the difference between when to use the walrus operator and across(), and I got more practice to condense calling a function() with multiple variables.

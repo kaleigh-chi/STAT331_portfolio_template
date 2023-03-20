@@ -1,0 +1,180 @@
+---
+title: "Lab9"
+author: "Kaleigh Chi"
+editor: visual
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+execute: 
+  echo: true
+  error: true
+  warning: false
+  messages: false
+---
+
+# Lab 9: Baby Names
+
+```{r}
+library(tidyverse)
+library(here)
+
+namesA <- read_csv(here("Week 9", "Lab 9", "StateNames_A.csv"))
+```
+
+# 3: Summarizing & Visualizing the Number of Allisons
+
+## 3.1 Summarizing the Number of Allisons
+
+```{r}
+namesA %>%
+  filter(Name == 'Allison') %>%
+  rename(Sex = Gender) %>%
+  group_by(Sex, State) %>%
+  summarize(count_eval = sum(Count),
+            .groups = "drop") %>%
+  pivot_wider(names_from = Sex,
+              values_from = count_eval,
+              values_fill = 0)
+```
+
+## 3.2 Allison Data Set
+
+```{r}
+allison_f <- namesA %>%
+  filter(Name == 'Allison', Gender == 'F') %>%
+  rename(Sex = Gender) %>%
+  group_by(Sex, Year) %>%
+  summarize(count_eval = sum(Count),
+            .groups = 'drop') %>%
+  pivot_wider(names_from = Sex,
+              values_from = count_eval,
+              values_fill = 0)
+```
+
+## 3.3 Popularity of Allison Visualization
+
+```{r}
+allison_f %>%
+  mutate(
+    Year = factor(Year)
+  ) %>%
+  
+ggplot(mapping = aes(x = Year, y = F)) +
+    geom_bar(stat = "identity") +
+    labs(y = NULL,
+         x = "Year",
+         title = "Frequency of U.S. Babies Named 'Allison' from 1997 to 2014") +
+    scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+    theme(plot.title.position = "plot") 
+```
+
+# 4: Modeling the Number of Allisons
+
+## 4.4 Modeling the Number of Allisons
+
+```{r}
+ggplot(data = allison_f,
+        mapping = aes(x = Year, y = F)) +
+   geom_point() +
+   stat_smooth(method = "lm", formula = y ~ x) +
+   labs(y = NULL,
+        x = "Year",
+        title = "Linear Model of U.S. Babies Named 'Allison' from 1997 to 2014") +
+   theme(plot.title.position = "plot")
+```
+
+## 4.5 Estimated regression equation
+
+```{r}
+estReg <- allison_f |>
+  lm(F ~ Year, data = _)
+
+broom::tidy(estReg)
+```
+
+predictedAllisonsBorn = 209689.7609 - 101.5191 \* year
+
+## 4.6 Plot Residuals of the Model
+
+```{r}
+modResid <- allison_f |>
+  lm(F ~ Year, data = _)
+
+modResid |>
+  broom::augment() |>
+  ggplot(mapping = aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  labs(x = "fitted", y = "resid")
+```
+
+Our residual plot appears to be in a nonlinear U-shaped pattern. The residuals tend to be within 500 of the actual values, but I can't say there's equality of variance. This indicates to me that the regression model would not be appropriate.
+
+## 4.7 Allison Model Conclusion
+
+I see that the linear regression model there is a downward slope from 1997 to 2014. Given the nonlinear residual patterns from the residual model, I conclude from this model that there is low confidence that Allison is no longer a popular name.
+
+# 5. Spelling by State
+
+## 5.8 Narrow A Name Data Set
+
+```{r}
+aNames_df <- namesA %>%
+  filter(Name %in% c("Allan", "Alan", "Allen"), 
+         Gender == "M") %>%
+  group_by(Name, Year) %>%
+  summarise(Count = sum(Count), .groups = 'keep') %>%
+  pivot_wider(names_from = Name,
+              values_from = Count)
+```
+
+```{r}
+ggplot(data = aNames_df,
+       mapping = aes(x = Year)) +
+    geom_line(aes(y = Alan, color = "green")) +
+    geom_line(aes(y = Allan, color = "red")) +
+    geom_line(aes(y = Allen, color = "blue")) +
+    labs(y = NULL,
+         x = "Year",
+         title = "Popularity of Male 'A' Names From 1997 to 2014") +
+    theme(plot.title.position = "plot",
+          legend.position = "none") +
+    annotate("text", y = 2350, x = 2014, label = "Alan", color = "green") +
+    annotate("text", y = 1000, x = 2014, label = "Allen", color = "red") +
+    annotate("text", y = 450, x = 2014, label = "Allan", color = "blue")
+```
+
+## 5.9 Tables of Baby "Allan" Born in 2000
+
+```{r}
+namesA %>%
+  filter(Name %in% c("Allan", "Allen", "Alan"),
+         State %in% c("CA", "PA"), 
+         Year == 2000, 
+         Gender == "M") %>%
+  group_by(Name, State) %>%
+  summarise(Count = sum(Count), .groups = 'keep') %>%
+  pivot_wider(names_from = Name,
+              values_from = Count,
+              values_fill = 0)
+```
+
+## 5.10 Convert Counts to Percents
+
+```{r}
+namesA %>%
+  filter(Name %in% c("Allan", "Allen", "Alan"),
+         State %in% c("CA", "PA"), 
+         Year == 2000, 
+         Gender == "M") %>%
+  group_by(State) %>%
+  mutate(Prop = round((Count / sum(Count)) * 100, 3)) %>%
+  select(-Count, -Year, -Gender) %>%
+  pivot_wider(names_from = Name,
+              values_from = Prop,
+              values_fill = 0)
+```
+
+# Revisions
+
+I revised Q5 and Q10 for this lab. My issue with Q5 was that I was assuming the ACTUAL number of Allisons born each year was the y. I had to reflect on that comment and I realized in a regression model, we are finding the predicted y variable. I made sure to note that the y is the predictedAllisonsBorn. Moving forward I'll have to be careful about how I label my y to not confuse myself or my readers. This issue with my Q10 was that I was only printing out the proportions. The question was asking for percentages so I made sure to multiply my proportions by 100, and I rounded the decimal places to the thousandths sake so the numbers wouldn't be too long. I had to read the instructions again to make sure what it was really asking for, so moving forward I'll have to be careful about how I code before I submit my outputs.

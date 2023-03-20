@@ -1,0 +1,209 @@
+---
+title: "Challenge 9"
+author: "Kaleigh Chi"
+editor: visual
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+execute: 
+  echo: true
+  error: true
+  warning: false
+  messages: false
+---
+
+# Challenge 9: Baby Names
+
+```{r}
+library(tidyverse)
+library(here)
+library(gt)
+library(DT)
+
+namesA <- read_csv(here("Week 9", "Lab 9", "StateNames_A.csv"))
+```
+
+# 3: Summarizing & Visualizing the Number of Allisons
+
+## 3.1 Summarizing the Number of Allisons
+
+```{r}
+namesA %>%
+  filter(Name == 'Allison') %>%
+  rename(Sex = Gender) %>%
+  group_by(Sex, State) %>%
+  summarize(count_eval = sum(Count),
+            .groups = "drop") %>%
+  pivot_wider(names_from = Sex,
+              values_from = count_eval,
+              values_fill = 0) %>%
+  gt() %>%
+  as.data.frame() %>%
+  datatable()
+```
+
+## 3.2 Allison Data Set
+
+```{r}
+allison_f <- namesA %>%
+  filter(Name == 'Allison', Gender == 'F') %>%
+  rename(Sex = Gender) %>%
+  group_by(Sex, Year) %>%
+  summarize(count_eval = sum(Count),
+            .groups = 'drop') %>%
+  pivot_wider(names_from = Sex,
+              values_from = count_eval,
+              values_fill = 0)
+```
+
+## 3.3 Popularity of Allison Visualization
+
+```{r}
+allison_f %>%
+  mutate(
+    Year = factor(Year)
+  ) %>%
+  
+ggplot(mapping = aes(x = Year, y = F)) +
+    geom_bar(stat = "identity") +
+    labs(y = NULL,
+         x = "Year",
+         title = "Frequency of U.S. Babies Named 'Allison' from 1997 to 2014") +
+    scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
+    theme(plot.title.position = "plot") 
+```
+
+# 4: Modeling the Number of Allisons
+
+## 4.4 Modeling the Number of Allisons
+
+```{r}
+ggplot(data = allison_f,
+        mapping = aes(x = Year, y = F)) +
+   geom_point() +
+   stat_smooth(method = "lm", formula = y ~ x) +
+   labs(y = NULL,
+        x = "Year",
+        title = "Linear Model of U.S. Babies Named 'Allison' from 1997 to 2014") +
+   theme(plot.title.position = "plot")
+```
+
+## 4.5 Estimated regression equation
+
+```{r}
+estReg <- allison_f |>
+  lm(F ~ Year, data = _)
+
+broom::tidy(estReg) %>%
+  gt()
+```
+
+predictedAllisonsBorn = 209689.7609 - 101.5191 \* year
+
+## 4.6 Plot Residuals of the Model
+
+```{r}
+modResid <- allison_f |>
+  lm(F ~ Year, data = _)
+
+modResid |>
+  broom::augment() |>
+  ggplot(mapping = aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  labs(x = "fitted", y = "resid")
+```
+
+Our residual plot appears to be in a nonlinear U-shaped pattern. The residuals tend to be within 500 of the actual values, but I can't say there's equality of variance. This indicates to me that the regression model would not be appropriate.
+
+## 4.7 Allison Model Conclusion
+
+I see that the linear regression model there is a downward slope from 1997 to 2014. Given the nonlinear residual patterns from the residual model, I conclude from this model that there is low confidence that Allison is no longer a popular name.
+
+# 5. Spelling by State
+
+## 5.8 Narrow A Name Data Set
+
+```{r}
+aNames_df <- namesA %>%
+  filter(Name %in% c("Allan", "Alan", "Allen"), 
+         Gender == "M") %>%
+  group_by(Name, Year) %>%
+  summarise(Count = sum(Count), .groups = 'keep') %>%
+  pivot_wider(names_from = Name,
+              values_from = Count)
+```
+
+```{r}
+ggplot(data = aNames_df,
+       mapping = aes(x = Year)) +
+    geom_line(aes(y = Alan, color = "green")) +
+    geom_line(aes(y = Allan, color = "red")) +
+    geom_line(aes(y = Allen, color = "blue")) +
+    labs(y = NULL,
+         x = "Year",
+         title = "Popularity of Male 'A' Names From 1997 to 2014") +
+    theme(plot.title.position = "plot",
+          legend.position = "none") +
+    annotate("text", y = 2350, x = 2014, label = "Alan", color = "green") +
+    annotate("text", y = 1000, x = 2014, label = "Allen", color = "red") +
+    annotate("text", y = 450, x = 2014, label = "Allan", color = "blue")
+```
+
+## 5.9 Tables of Baby "Allan" Born in 2000
+
+```{r}
+# learned how to use tab_header() with source:
+# https://gt.rstudio.com/reference/tab_header.html
+
+# learned how to use cols_label() with source:
+# https://gt.rstudio.com/reference/cols_label.html 
+
+namesA %>%
+  filter(Name %in% c("Allan", "Allen", "Alan"),
+         State %in% c("CA", "PA"), 
+         Year == 2000, 
+         Gender == "M") %>%
+  group_by(Name, State) %>%
+  summarise(Count = sum(Count), .groups = 'keep') %>%
+  pivot_wider(names_from = Name,
+              values_from = Count,
+              values_fill = 0) %>%
+  gt() %>%
+  cols_label(State = "State") %>%
+  tab_header(title = "Frequency of Baby 'Alan' Variations",
+             subtitle = "California and Pennsyvlania in Year 2000")
+```
+
+## 5.10 Convert Counts to Percents
+
+```{r}
+# learned how to use tab_options() with sources: 
+# https://gt.rstudio.com/reference/tab_options.html
+# https://www.liamdbailey.com/post/making-beautiful-tables-with-gt/
+
+namesA %>%
+  filter(Name %in% c("Allan", "Allen", "Alan"),
+         State %in% c("CA", "PA"),
+         Year == 2000,
+         Gender == "M") %>%
+  group_by(State) %>%
+  mutate(Prop = Count / sum(Count)) %>%
+  select(-Count, -Year, -Gender) %>%
+  pivot_wider(names_from = Name,
+              values_from = Prop,
+              values_fill = 0) %>%
+  gt(groupname_col = "State") %>%
+  fmt_percent(columns = 2:4, decimals = 2) %>%
+  tab_header(title = "Percentage of Baby 'Alan' Variations Within States",
+             subtitle = "California and Pennsylvania in Year 2000") %>%
+  tab_options(heading.title.font.size = 20,
+              table.background.color = "steelblue",
+              heading.align = "left")
+```
+
+# Reflections
+
+I looked over my challenge 9 since I noticed I received an incomplete. I made the same corrections to challenge 9 that I did to my lab 9. I changed the Question 5 to make sure the predictedAllisonsBorn was denoted as the y. This is to accurately represent the y for the regression line and it's good practice to make that note in my equation.
+
+I also changed my Question 10 table because I noticed the percentages weren't adding correctly within each states. Initially, my table was finding proportions of each name based on the total table. I realized I left out a group_by(). I made sure to group by states to ensure the accurate proportions were found within each state and thus accurate percentages.

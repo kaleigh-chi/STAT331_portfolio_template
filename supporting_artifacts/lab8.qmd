@@ -1,0 +1,150 @@
+---
+title: "Lab 8: The 12 Days of Christmas"
+author: "Kaleigh Chi"
+editor: visual
+format: 
+  html: 
+    self-contained: true
+    code-tools: true
+execute: 
+  echo: true
+  error: true
+  warning: false
+  messages: false
+---
+
+```{r packages}
+#| include: false
+library(dplyr)
+library(glue)
+library(stringr)
+library(purrr)
+library(english)
+```
+
+# 0.1 SINGING THE SONG
+
+### Loading xmas data set
+
+```{r}
+xmas <- read.csv("https://www.dropbox.com/s/e584pryn8evm1gz/xmas.csv?dl=1")
+```
+
+### Step One: Creating the Plurals
+
+```{r pluralize-function}
+pluralize_gift <- function(gift) {
+  gift <- case_when(
+    str_detect(gift, "oo") ~ str_replace(gift, "oo", "ee"),
+    TRUE ~ str_c(gift, "s")
+  )
+  
+  gift <- gift %>%
+    str_replace("ys$", "ies")
+  
+  return(gift)
+}
+
+```
+
+### Test Your Function
+
+```{r pluralize-test}
+pluralize_gift(xmas$Gift.Item)
+```
+
+### Step Two: Creating Phrases
+
+```{r phrase-function}
+make_phrase <- function(day, Num.Words, Item, Verb, Adjective, Location) {
+  
+   Verb <- str_replace_na(Verb, "")
+   Adjective <- str_replace_na(Adjective, "")
+   Location <- str_replace_na(Location, "")
+   
+   Item <- if (day > 1) {
+     pluralize_gift(Item)
+   } else {
+     Item
+   }
+   
+   if(day == 1 & str_detect("^[AaEeIiOoUu]", Item)) {
+     day <- "an "
+   } else if (day > 1) {
+     day <- english(day)
+   } else {
+     day <- "a "
+   }
+   
+   result <- str_squish(str_c(day, Adjective, Item, Verb, Location, sep = " "))
+   return(result)
+ }
+```
+
+### Test Your Function
+
+```{r}
+xmas2 <- xmas %>%
+ mutate(Full.Phrase = pmap_chr(.l = list(Day, 
+                                         Day.in.Words, 
+                                         Gift.Item, 
+                                         Verb, 
+                                         Adjective, 
+                                         Location),
+                               .f = make_phrase))
+
+xmas2$Full.Phrase
+```
+
+# 1 Step Three: Iteration
+
+```{r}
+sing_day <- function(dataset, line, phrase_col) {
+  
+  num_word <- ordinal(english(line))
+  
+  intro <- glue::glue("On the {num_word} day of Christmas, my true love sent to me:")
+  
+  phrases <- dataset |>
+    pull( {{phrase_col}} )
+  
+  if (line > 2) {
+    giftOrder <- str_c(phrases[(line):2], collapse = "\n")
+    giftOrder <- str_c(giftOrder, " and \n", phrases[1])
+  }
+  else if (line == 2) {
+    giftOrder <- str_c(phrases[line], " and \n", phrases[1])
+  }
+  else {
+    giftOrder <- str_c(phrases[1])
+  }
+
+  result <- glue::glue("{intro}", "\n", "{giftOrder}.")
+  return(result)
+}
+```
+
+```{r}
+xmas2 |>
+sing_day(line = 2, phrase_col = Full.Phrase)
+```
+
+# 2 Step Four: Use Your Functions!
+
+```{r}
+christmas_song <- function(dataset, line, phrase_col) {
+  
+  song <- map_chr(.x = 1:line,
+                  .f = ~sing_day(dataset, .x, phrase_col))
+  
+  return(glue::glue("{song}"))
+}
+```
+
+```{r}
+christmas_song(xmas2, 12, "Full.Phrase")
+```
+
+# Revisions
+
+I edited this code to account for all cases of the 12 objects in 12 days of Christmas. Initially, goose and lady were not being pluralized. This was an oversight in my part. I made sure to use case_when to capture the cases when pluralize_function() function detected the "oo" to change it to "ee" and not give it an s at the end. To make lady pluralized, I made sure to replace any detections of words ending in "ys" and replace it with "ies". I find the case_when an extremely useful tool in evaluating certain circumstances, and I'll be sure moving forward to take that into account when I'm applying changes to my code blocks but come across special cases.

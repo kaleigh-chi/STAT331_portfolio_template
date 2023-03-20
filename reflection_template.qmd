@@ -278,7 +278,7 @@ namesA %>%
 
 **R-1: I can create professional looking, reproducible analyses using RStudio projects, Quarto documents, and the here package.**
 
-I've done this in the following provided assignments: Lab 2, , Challenge 3, Challenge 4
+I've done this in the following provided assignments: Challenge 4 and Lab 7.
 
 **R-2: I can write well documented and tidy code.**
 
@@ -520,8 +520,6 @@ metroAvo %>%
 -   Example 2
 
 ```{r dvs-3-2}
-# Challenge 4, Avocado vs Housing Prices Plot
-
 # Lab 7, Problem 2.2
 
 blackFootFish %>%
@@ -603,6 +601,7 @@ hiphop_mean <- hiphop %>%
 
 ```{r dvs-6-1}
 # Challenge 9, Problem 10 (Revised)
+
 namesA %>%
   filter(Name %in% c("Allan", "Allen", "Alan"),
          State %in% c("CA", "PA"),
@@ -646,7 +645,7 @@ namesA %>%
 
 **DVS-7: I show creativity in my tables.**
 
--   Example 1 ( needs to come from challenge 9)
+-   Example 1 
 
 ```{r dvs-7-1}
 # Challenge 9, Problem 10 (Revised)
@@ -887,7 +886,7 @@ sum(my_weights < 4532)
 
 **DSM-2: I can fit a linear regression and extract necessary summary measures.**
 
--   Example 1 ( these need to come from either practice activity 9.1 or lab 9)
+-   Example 1 
 
 ```{r dsm-2-1}
 # Lab 9, Problem 5 (Revised)
